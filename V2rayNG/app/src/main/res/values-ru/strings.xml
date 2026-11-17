@@ -3,6 +3,8 @@
     <string name="app_name" translatable="false">FlowNG</string>
     <string name="flow_home">Главная</string>
     <string name="flow_servers">Серверы</string>
+    <string name="flow_connecting">Подключение…</string>
+    <string name="flow_error">Ошибка подключения</string>
     <string name="flow_connected">Подключено</string>
     <string name="flow_disconnected">Отключено</string>
     <string name="flow_connect">Подключить</string>

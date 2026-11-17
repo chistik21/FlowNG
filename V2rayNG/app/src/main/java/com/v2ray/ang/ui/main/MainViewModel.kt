@@ -143,6 +143,7 @@ class MainViewModel(
                     toastError(R.string.toast_services_failure)
                 }
                 updateRunningState(false)
+                _uiState.update { it.copy(status = MainStatus.Error) }
             }
 
             MainServiceEvent.StateStopSuccess -> updateRunningState(false)
@@ -222,7 +223,9 @@ class MainViewModel(
 
     internal fun formatStatus(status: MainStatus): String = when (status) {
         MainStatus.Disconnected -> dataSource.getString(R.string.connection_not_connected)
+        MainStatus.Connecting -> dataSource.getString(R.string.flow_connecting)
         MainStatus.Connected -> dataSource.getString(R.string.connection_connected)
+        MainStatus.Error -> dataSource.getString(R.string.flow_error)
         MainStatus.Testing -> dataSource.getString(R.string.connection_test_testing)
         is MainStatus.TestProgress -> dataSource.getString(
             R.string.connection_running_task_left,
@@ -277,6 +280,8 @@ class MainViewModel(
     fun onAction(action: MainAction) {
         when (action) {
             MainAction.Initialize -> initialize()
+            MainAction.ConnectionRequested -> _uiState.update { it.copy(status = MainStatus.Connecting) }
+            MainAction.ConnectionCancelled -> _uiState.update { it.copy(status = MainStatus.Disconnected) }
             MainAction.RefreshGroups -> setupGroupTab(forceRefresh = true)
             MainAction.TestAllServers -> testAllRealPing(true)
             MainAction.TestRealAllServers -> testAllRealPing()

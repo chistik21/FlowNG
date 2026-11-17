@@ -22,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -54,7 +55,12 @@ internal fun FlowDashboard(
         else MaterialTheme.colorScheme.primaryContainer,
         label = "connection surface"
     )
-    val status = if (running) R.string.flow_connected else R.string.flow_disconnected
+    val status = when {
+        running -> R.string.flow_connected
+        state.status == MainStatus.Connecting -> R.string.flow_connecting
+        state.status == MainStatus.Error -> R.string.flow_error
+        else -> R.string.flow_disconnected
+    }
 
     Column(
         modifier = Modifier
@@ -95,6 +101,7 @@ internal fun FlowDashboard(
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                         onAction(MainAction.ToggleService)
                     },
+                    enabled = state.status != MainStatus.Connecting,
                     modifier = Modifier.size(164.dp),
                     shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(
@@ -103,14 +110,24 @@ internal fun FlowDashboard(
                     )
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            painter = painterResource(if (running) R.drawable.ic_stop_24dp else R.drawable.ic_play_24dp),
-                            contentDescription = null,
-                            modifier = Modifier.size(36.dp)
-                        )
+                        if (state.status == MainStatus.Connecting) {
+                            CircularProgressIndicator(modifier = Modifier.size(36.dp))
+                        } else {
+                            Icon(
+                                painter = painterResource(if (running) R.drawable.ic_stop_24dp else R.drawable.ic_play_24dp),
+                                contentDescription = null,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = stringResource(if (running) R.string.flow_disconnect else R.string.flow_connect),
+                            text = stringResource(
+                                when {
+                                    state.status == MainStatus.Connecting -> R.string.flow_connecting
+                                    running -> R.string.flow_disconnect
+                                    else -> R.string.flow_connect
+                                }
+                            ),
                             style = MaterialTheme.typography.titleMedium,
                             textAlign = TextAlign.Center
                         )

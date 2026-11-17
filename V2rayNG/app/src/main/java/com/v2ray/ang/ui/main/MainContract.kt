@@ -8,7 +8,9 @@ import com.v2ray.ang.dto.entities.ServersCache
 /** Locale-neutral state formatted only when it reaches the main UI. */
 sealed interface MainStatus {
     data object Disconnected : MainStatus
+    data object Connecting : MainStatus
     data object Connected : MainStatus
+    data object Error : MainStatus
     data object Testing : MainStatus
     data class TestProgress(val progress: String) : MainStatus
     data class ConnectionTest(val result: ConnectionTestResult) : MainStatus
@@ -41,6 +43,8 @@ sealed interface MainAction {
     data object Initialize : MainAction
     data object RefreshGroups : MainAction
     data object ToggleService : MainAction
+    data object ConnectionRequested : MainAction
+    data object ConnectionCancelled : MainAction
     data object TestCurrentServer : MainAction
     data object TestAllServers : MainAction
     data object TestRealAllServers : MainAction

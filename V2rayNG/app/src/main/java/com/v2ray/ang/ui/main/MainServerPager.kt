@@ -27,6 +27,9 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -57,10 +60,8 @@ import com.v2ray.ang.R
 import com.v2ray.ang.dto.LocateTarget
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.dto.entities.SubscriptionUsageInfo
-import com.v2ray.ang.ui.compose.ItemDivider
 import com.v2ray.ang.ui.compose.ReorderableGridItem
 import com.v2ray.ang.ui.compose.ReorderableListItem
-import com.v2ray.ang.ui.compose.colorConfigType
 import com.v2ray.ang.ui.compose.colorPing
 import com.v2ray.ang.ui.compose.colorPingRed
 import com.v2ray.ang.ui.compose.verticalScrollbar
@@ -248,9 +249,6 @@ private fun ServerListPage(
                         key = row.guid
                     ) { isDragging ->
                         val itemScope = this
-                        // ReorderableItem is a Box, so a bare divider would be drawn over the top of the
-                        // row (including the first one); the Column puts it below the row instead.
-                        Column {
                             ReorderableListItem(
                                 scope = itemScope,
                                 isDragging = isDragging
@@ -261,8 +259,6 @@ private fun ServerListPage(
                                     actions = actions
                                 )
                             }
-                            ItemDivider()
-                        }
                     }
                 } else {
                     ServerItemRow(
@@ -270,7 +266,6 @@ private fun ServerListPage(
                         isSelected = row.guid == selectedGuid,
                         actions = actions
                     )
-                    ItemDivider()
                 }
             }
         }
@@ -337,7 +332,6 @@ private fun ServerItemColumn(
             doubleColumnDisplay = doubleColumnDisplay,
             actions = actions
         )
-        ItemDivider()
     }
 }
 
@@ -358,17 +352,25 @@ private fun ServerListItem(
     } else {
         null
     }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .semantics {
-                if (selectedStateDescription != null) {
-                    stateDescription = selectedStateDescription
-                }
-            }
-            .clickable { actions.select(row.guid) }
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 5.dp),
+        shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
+      Row(
+          modifier = Modifier
+              .fillMaxWidth()
+              .height(IntrinsicSize.Min)
+              .semantics {
+                  if (selectedStateDescription != null) {
+                      stateDescription = selectedStateDescription
+                  }
+              }
+              .clickable { actions.select(row.guid) }
+      ) {
         Box(
             Modifier
                 .width(10.dp)
@@ -454,7 +456,7 @@ private fun ServerListItem(
                     row.typeDescription,
                     modifier = Modifier.weight(1f, fill = false),
                     style = MaterialTheme.typography.bodySmall,
-                    color = colorConfigType,
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -468,6 +470,7 @@ private fun ServerListItem(
                 )
             }
         }
+      }
     }
 }
 

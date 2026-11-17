@@ -42,7 +42,19 @@ jobs:
           sdkmanager --install 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;30.0.16248370'
           echo "NDK_HOME=$ANDROID_HOME/ndk/30.0.16248370" >> "$GITHUB_ENV"
 
+      - name: Identify pinned HEV revision
+        id: hev
+        run: echo "revision=$(git -C hev-socks5-tunnel rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache native HEV binaries
+        id: hev-cache
+        uses: actions/cache@v4
+        with:
+          path: libs
+          key: hev-${{ runner.os }}-ndk30-${{ steps.hev.outputs.revision }}-${{ hashFiles('compile-hevtun.sh') }}
+
       - name: Build HEV JNI and root-mode binaries for all app ABIs
+        if: steps.hev-cache.outputs.cache-hit != 'true'
         run: bash compile-hevtun.sh
 
       - name: Stage HEV binaries

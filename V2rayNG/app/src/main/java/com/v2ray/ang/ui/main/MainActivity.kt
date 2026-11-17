@@ -63,6 +63,7 @@ class MainActivity : HelperBaseComponentActivity() {
     private val requestVpnPermission =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) startV2Ray()
+            else mainViewModel.onAction(MainAction.ConnectionCancelled)
         }
 
     private val profileEditorLauncher =
@@ -176,6 +177,7 @@ class MainActivity : HelperBaseComponentActivity() {
     }
 
     private fun requestServiceStart() {
+        mainViewModel.onAction(MainAction.ConnectionRequested)
         if (!SettingsManager.isVpnMode()) {
             startV2Ray()
             return
@@ -192,6 +194,7 @@ class MainActivity : HelperBaseComponentActivity() {
 
     private fun startV2Ray() {
         if (mainViewModel.uiState.value.selectedGuid.isNullOrEmpty()) {
+            mainViewModel.onAction(MainAction.ConnectionCancelled)
             toast(R.string.title_file_chooser)
             return
         }
