@@ -83,6 +83,30 @@ jobs:
           chmod +x gradlew
           ./gradlew --stacktrace :app:testPlaystoreDebugUnitTest :app:assemblePlaystoreDebug
 
+      - name: Verify all VPN native libraries are packaged
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          apk_dir = Path('V2rayNG/app/build/outputs/apk/playstore/debug')
+          apks = list(apk_dir.glob('*.apk'))
+          if not apks:
+              raise SystemExit(f'No debug APK in {apk_dir}')
+          required = ('libhev-socks5-tunnel.so', 'libhevsockstun.so', 'libgojni.so')
+          abis = ('arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64')
+          for apk in apks:
+              selected = abis if 'universal' in apk.name else tuple(abi for abi in abis if apk.name.endswith(f'_{abi}.apk'))
+              if not selected:
+                  raise SystemExit(f'Unknown ABI in {apk.name}')
+              with ZipFile(apk) as zipped:
+                  missing = [f'lib/{abi}/{name}' for abi in selected for name in required if f'lib/{abi}/{name}' not in zipped.namelist()]
+              if missing:
+                  raise SystemExit(f'{apk.name} is missing native VPN binaries: {missing}')
+              print(f'{apk.name}: verified {", ".join(selected)} ({", ".join(required)})')
+          PY
+
       - name: Upload installable debug APKs
         uses: actions/upload-artifact@v4
         with:
