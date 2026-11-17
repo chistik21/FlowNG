@@ -103,6 +103,7 @@ class MainViewModel(
     private var setupGroupJob: Job? = null
     private var preloadJob: Job? = null
     private var selectedGroupLoadJob: Job? = null
+    private var selectedServerJob: Job? = null
     private var reloadJob: Job? = null
     private var testResultFlushJob: Job? = null
     private val pendingTestResults = linkedMapOf<String, Long>()
@@ -477,6 +478,7 @@ class MainViewModel(
                         selectedGuid = dataSource.getSelectServer(),
                     )
                 }
+                refreshSelectedServer()
                 groups.forEach { mutableServerGroupState(it.id) }
 
                 if (groups.isEmpty()) {
@@ -778,11 +780,34 @@ class MainViewModel(
 
     fun updateSelectedGuid(guid: String) {
         dataSource.setSelectServer(guid)
-        _uiState.update { it.copy(selectedGuid = guid) }
+        _uiState.update { it.copy(selectedGuid = guid, selectedServer = null) }
+        refreshSelectedServer()
     }
 
     fun refreshSelectedGuid() {
         _uiState.update { it.copy(selectedGuid = dataSource.getSelectServer()) }
+        refreshSelectedServer()
+    }
+
+    private fun refreshSelectedServer() {
+        selectedServerJob?.cancel()
+        val guid = uiState.value.selectedGuid
+        if (guid.isNullOrEmpty()) {
+            _uiState.update { it.copy(selectedServer = null) }
+            return
+        }
+        selectedServerJob = viewModelScope.launch(ioDispatcher) {
+            try {
+                val profile = dataSource.decodeServerConfig(guid)
+                val delay = dataSource.decodeAffiliationInfo(guid)?.testDelayMillis ?: 0L
+                val server = profile?.let { ServersCache(guid, it.copy(), delay) }
+                _uiState.update { it.withSelectedServer(guid, server) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                LogUtil.e(AppConfig.TAG, "Failed to load selected server $guid", error)
+            }
+        }
     }
 
     fun removeServerAndRefresh(guid: String) {
@@ -944,6 +969,7 @@ class MainViewModel(
         setupGroupJob?.cancel()
         preloadJob?.cancel()
         selectedGroupLoadJob?.cancel()
+        selectedServerJob?.cancel()
         reloadJob?.cancel()
         filterJob?.cancel()
         cancelAllPing()

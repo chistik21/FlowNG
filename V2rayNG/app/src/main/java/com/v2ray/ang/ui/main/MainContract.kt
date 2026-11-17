@@ -3,6 +3,7 @@ package com.v2ray.ang.ui.main
 import com.v2ray.ang.dto.ConnectionTestResult
 import com.v2ray.ang.dto.GroupMapItem
 import com.v2ray.ang.dto.LocateTarget
+import com.v2ray.ang.dto.entities.ServersCache
 
 /** Locale-neutral state formatted only when it reaches the main UI. */
 sealed interface MainStatus {
@@ -20,6 +21,7 @@ data class MainUiState(
     val groups: List<GroupMapItem> = emptyList(),
     val selectedGroupId: String = "",
     val selectedGuid: String? = null,
+    val selectedServer: ServersCache? = null,
     val isRunning: Boolean = false,
     val isTesting: Boolean = false,
     val status: MainStatus = MainStatus.Disconnected,
@@ -28,6 +30,9 @@ data class MainUiState(
     val doubleColumnDisplay: Boolean = false,
     val shareQRCodeBitmap: android.graphics.Bitmap? = null
 )
+
+internal fun MainUiState.withSelectedServer(guid: String, server: ServersCache?): MainUiState =
+    if (selectedGuid == guid && guid.isNotEmpty()) copy(selectedServer = server) else this
 
 /**
  * All possible user interaction intents

@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">v2rayNG</string>
+    <string name="app_name" translatable="false">FlowNG</string>
+    <string name="flow_home">Home</string>
+    <string name="flow_servers">Servers</string>
+    <string name="flow_connected">Connected</string>
+    <string name="flow_disconnected">Disconnected</string>
+    <string name="flow_connect">Connect</string>
+    <string name="flow_disconnect">Disconnect</string>
+    <string name="flow_active_server">Active server</string>
+    <string name="flow_choose_server">Choose a server</string>
+    <string name="flow_test_connection">Test connection</string>
     <string name="app_widget_name">Kết nối ngay</string>
     <string name="app_tile_name">Kết nối ngay</string>
     <string name="app_tile_first_use">Vui lòng thêm một cấu hình vào v2rayNG để sử dụng!</string>

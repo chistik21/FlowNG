@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">v2rayNG</string>
+    <string name="app_name" translatable="false">FlowNG</string>
+    <string name="flow_home">Главная</string>
+    <string name="flow_servers">Серверы</string>
+    <string name="flow_connected">Подключено</string>
+    <string name="flow_disconnected">Отключено</string>
+    <string name="flow_connect">Подключить</string>
+    <string name="flow_disconnect">Отключить</string>
+    <string name="flow_active_server">Активный сервер</string>
+    <string name="flow_choose_server">Выберите сервер</string>
+    <string name="flow_test_connection">Проверить соединение</string>
     <string name="app_widget_name">v2rayNG</string>
     <string name="app_tile_name">v2rayNG</string>
     <string name="app_tile_first_use">Добавьте профиль в приложении перед использованием этой функции.</string>

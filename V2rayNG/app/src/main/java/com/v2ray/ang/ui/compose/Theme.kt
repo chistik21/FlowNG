@@ -28,11 +28,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 private val LightColor = lightColorScheme(
-    primary = Color(0xFF000000), // Black
-    onPrimary = Color(0xFFFFFFFF), // White
-    primaryContainer = Color(0xFFE0E0E0), // Light Gray
-    onPrimaryContainer = Color(0xFF000000), // Black
-    secondary = Color(0xFFf97910), // Orange
+    primary = Color(0xFF315ECA),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFDCE5FF),
+    onPrimaryContainer = Color(0xFF001849),
+    secondary = Color(0xFF52618A),
     onSecondary = Color(0xFFFFFFFF), // White
     secondaryContainer = Color(0xFFFFE8D6), // Pale Orange
     onSecondaryContainer = Color(0xFF2B1700), // Dark Brown
@@ -44,9 +44,9 @@ private val LightColor = lightColorScheme(
     errorContainer = Color(0xFFFFDAD6), // Light Red
     onError = Color(0xFFFFFFFF), // White
     onErrorContainer = Color(0xFF410002), // Dark Red
-    background = Color(0xFFFFFFFF), // White
+    background = Color(0xFFF8F9FF),
     onBackground = Color(0xFF1C1B1F), // Near Black
-    surface = Color(0xFFFFFFFF), // White
+    surface = Color(0xFFF8F9FF),
     onSurface = Color(0xFF1C1B1F), // Near Black
     surfaceVariant = Color(0xFFE7E0EC), // Light Purple Gray
     onSurfaceVariant = Color(0xFF49454F), // Dark Gray
@@ -56,7 +56,7 @@ private val LightColor = lightColorScheme(
     inverseOnSurface = Color(0xFFF4EFF4), // Very Light Gray
     inversePrimary = Color(0xFFC0C0C0), // Silver Gray
     scrim = Color(0xFF000000), // Black
-    surfaceTint = Color(0xFF000000), // Black
+    surfaceTint = Color(0xFF315ECA),
     surfaceContainerLowest = Color(0xFFFFFFFF), // White
     surfaceContainerLow = Color(0xFFF7F7F7), // Very Light Gray
     surfaceContainer = Color(0xFFF1F1F1), // Light Gray
@@ -65,11 +65,11 @@ private val LightColor = lightColorScheme(
 )
 
 private val DarkColor = darkColorScheme(
-    primary = Color(0xFFC0C0C0), // Silver Gray
-    onPrimary = Color(0xFF303030), // Dark Gray
-    primaryContainer = Color(0xFF474747), // Gray
-    onPrimaryContainer = Color(0xFFE0E0E0), // Light Gray
-    secondary = Color(0xFFf97910), // Orange
+    primary = Color(0xFFB4C5FF),
+    onPrimary = Color(0xFF002B76),
+    primaryContainer = Color(0xFF164598),
+    onPrimaryContainer = Color(0xFFDCE5FF),
+    secondary = Color(0xFFBCC7EE),
     onSecondary = Color(0xFF4E2600), // Dark Brown
     secondaryContainer = Color(0xFF6F3800), // Brown
     onSecondaryContainer = Color(0xFFFFE8D6), // Pale Orange
@@ -81,9 +81,9 @@ private val DarkColor = darkColorScheme(
     errorContainer = Color(0xFF93000A), // Dark Red
     onError = Color(0xFF690005), // Deep Red
     onErrorContainer = Color(0xFFFFDAD6), // Light Red
-    background = Color(0xFF1C1B1F), // Near Black
+    background = Color(0xFF10131C),
     onBackground = Color(0xFFE6E1E5), // Light Gray
-    surface = Color(0xFF1C1B1F), // Near Black
+    surface = Color(0xFF10131C),
     onSurface = Color(0xFFE6E1E5), // Light Gray
     surfaceVariant = Color(0xFF49454F), // Dark Gray
     onSurfaceVariant = Color(0xFFCAC4D0), // Light Gray
@@ -93,7 +93,7 @@ private val DarkColor = darkColorScheme(
     inverseOnSurface = Color(0xFF1C1B1F), // Near Black
     inversePrimary = Color(0xFF000000), // Black
     scrim = Color(0xFF000000), // Black
-    surfaceTint = Color(0xFFC0C0C0), // Silver Gray
+    surfaceTint = Color(0xFFB4C5FF),
     surfaceContainerLowest = Color(0xFF0F0F12), // Near Black
     surfaceContainerLow = Color(0xFF1A191D), // Dark Gray
     surfaceContainer = Color(0xFF1E1D21), // Dark Gray
@@ -194,9 +194,7 @@ fun AppTheme(
         LocalDarkTheme provides darkTheme,
         LocalAppSnackbar provides snackbarController
     ) {
-        MaterialTheme(
-            colorScheme = colorScheme
-        ) {
+        MaterialTheme(colorScheme = colorScheme) {
             Box(modifier = Modifier.fillMaxSize()) {
                 AppSnackbarBridge(controller = snackbarController)
                 content()

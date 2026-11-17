@@ -5,15 +5,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -97,7 +94,6 @@ fun MainBottomBar(
             // instead of stretching across the whole screen.
             .widthIn(max = BAR_MAX_WIDTH)
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.navigationBars)
             .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 14.dp)
     ) {
         // Forced left-to-right so that the button stays on the physical right edge in every language;

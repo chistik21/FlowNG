@@ -3,8 +3,7 @@ package com.v2ray.ang.ui.main
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
@@ -12,9 +11,14 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,10 +36,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.v2ray.ang.dto.entities.ProfileItem
+import com.v2ray.ang.R
+import com.v2ray.ang.ui.compose.AppTopBar
 import com.v2ray.ang.ui.compose.LocalDarkTheme
 import com.v2ray.ang.ui.compose.QRCodeDialog
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -61,6 +68,7 @@ fun MainScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var showSearch by remember { mutableStateOf(false) }
+    var selectedSection by rememberSaveable { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
     var showDelAllConfirm by remember { mutableStateOf(false) }
     var showDelDuplicateConfirm by remember { mutableStateOf(false) }
@@ -161,7 +169,23 @@ fun MainScreen(
         Scaffold(
             contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
             topBar = {
-                MainTopBar(
+                if (selectedSection == 0) {
+                    AppTopBar(
+                        title = stringResource(R.string.app_name),
+                        onBackClick = {},
+                        isLoading = isLoading,
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(painterResource(R.drawable.ic_menu_24dp), stringResource(R.string.acc_open_menu))
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { onNavigate(MainDestination.Settings) }) {
+                                Icon(painterResource(R.drawable.ic_settings_24dp), stringResource(R.string.title_settings))
+                            }
+                        }
+                    )
+                } else MainTopBar(
                     isLoading = isLoading,
                     showSearch = showSearch,
                     searchQuery = searchQuery,
@@ -193,22 +217,43 @@ fun MainScreen(
                     }
                 )
             },
+            bottomBar = {
+                NavigationBar {
+                    NavigationBarItem(
+                        selected = selectedSection == 0,
+                        onClick = { selectedSection = 0 },
+                        icon = { Icon(painterResource(R.drawable.ic_play_24dp), null) },
+                        label = { Text(stringResource(R.string.flow_home)) }
+                    )
+                    NavigationBarItem(
+                        selected = selectedSection == 1,
+                        onClick = { selectedSection = 1 },
+                        icon = { Icon(painterResource(R.drawable.ic_description_24dp), null) },
+                        label = { Text(stringResource(R.string.flow_servers)) }
+                    )
+                    NavigationBarItem(
+                        selected = false,
+                        onClick = { onNavigate(MainDestination.Settings) },
+                        icon = { Icon(painterResource(R.drawable.ic_settings_24dp), null) },
+                        label = { Text(stringResource(R.string.title_settings)) }
+                    )
+                }
+            },
             floatingActionButton = {},
         ) { innerPadding ->
-            val layoutDirection = LocalLayoutDirection.current
             val bottomBarHeight = with(LocalDensity.current) { bottomBarHeightPx.toDp() }
 
-            Box(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
+            if (selectedSection == 0) {
+                FlowDashboard(
+                    state = uiState,
+                    onAction = onAction,
+                    onOpenServers = { selectedSection = 1 },
+                )
+            } else {
             if (groups.isNotEmpty()) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        // No bottom padding: the lists run behind the floating connection bar.
-                        .padding(
-                            start = innerPadding.calculateStartPadding(layoutDirection),
-                            top = innerPadding.calculateTopPadding(),
-                            end = innerPadding.calculateEndPadding(layoutDirection)
-                        )
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     if (groups.size > 1) {
                         GroupTabBar(
@@ -275,6 +320,7 @@ fun MainScreen(
                     .align(Alignment.BottomCenter)
                     .onSizeChanged { bottomBarHeightPx = it.height }
             )
+            }
             }
         }
     }
