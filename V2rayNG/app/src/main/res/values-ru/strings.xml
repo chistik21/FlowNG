@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">FlowNG</string>
+    <string name="flow_download">Загрузка</string>
+    <string name="flow_upload">Отдача</string>
+    <string name="flow_transferred">Передано</string>
+    <string name="flow_duration">Время соединения</string>
+    <string name="flow_unavailable">—</string>
+    <string name="flow_waiting_stats">Ожидание статистики Xray. При необходимости включите отображение скорости в настройках.</string>
+    <string name="flow_duration_value">%1$02d:%2$02d:%3$02d</string>
     <string name="flow_home">Главная</string>
     <string name="flow_servers">Серверы</string>
     <string name="flow_connecting">Подключение…</string>

@@ -40,6 +40,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.v2ray.ang.R
+import com.v2ray.ang.extension.toSpeedString
+import com.v2ray.ang.extension.toTrafficString
 
 /** Only daemon-confirmed running state and persisted server data are displayed here. */
 @Composable
@@ -171,6 +173,51 @@ internal fun FlowDashboard(
                     }
                 }
             }
+            val traffic = state.traffic.takeIf { running }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FlowMetric(
+                    title = stringResource(R.string.flow_download),
+                    value = traffic?.downloadBytesPerSecond?.toSpeedString() ?: stringResource(R.string.flow_unavailable),
+                    modifier = Modifier.weight(1f)
+                )
+                FlowMetric(
+                    title = stringResource(R.string.flow_upload),
+                    value = traffic?.uploadBytesPerSecond?.toSpeedString() ?: stringResource(R.string.flow_unavailable),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FlowMetric(
+                    title = stringResource(R.string.flow_transferred),
+                    value = traffic?.let { (it.totalUploadBytes + it.totalDownloadBytes).toTrafficString() }
+                        ?: stringResource(R.string.flow_unavailable),
+                    modifier = Modifier.weight(1f)
+                )
+                val elapsedSeconds = (traffic?.measuredDurationMillis ?: 0L) / 1000
+                FlowMetric(
+                    title = stringResource(R.string.flow_duration),
+                    value = if (traffic == null) stringResource(R.string.flow_unavailable) else stringResource(
+                        R.string.flow_duration_value,
+                        elapsedSeconds / 3600,
+                        (elapsedSeconds / 60) % 60,
+                        elapsedSeconds % 60
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            if (running && traffic == null) {
+                Text(
+                    stringResource(R.string.flow_waiting_stats),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             if (running) {
                 Text(
                     text = stringResource(R.string.flow_test_connection),
@@ -190,6 +237,21 @@ internal fun FlowDashboard(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FlowMetric(title: String, value: String, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(Modifier.padding(18.dp)) {
+            Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(10.dp))
+            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         }
     }
 }

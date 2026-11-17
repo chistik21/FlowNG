@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">FlowNG</string>
+    <string name="flow_download">Download</string>
+    <string name="flow_upload">Upload</string>
+    <string name="flow_transferred">Transferred</string>
+    <string name="flow_duration">Connected time</string>
+    <string name="flow_unavailable">—</string>
+    <string name="flow_waiting_stats">Waiting for Xray traffic counters. Enable speed display in settings if disabled.</string>
+    <string name="flow_duration_value">%1$02d:%2$02d:%3$02d</string>
     <string name="flow_home">Home</string>
     <string name="flow_servers">Servers</string>
     <string name="flow_connecting">Connecting…</string>

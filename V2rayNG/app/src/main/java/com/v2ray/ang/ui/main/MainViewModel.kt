@@ -147,6 +147,9 @@ class MainViewModel(
             }
 
             MainServiceEvent.StateStopSuccess -> updateRunningState(false)
+            is MainServiceEvent.TrafficUpdated -> _uiState.update { state ->
+                if (state.isRunning) state.copy(traffic = event.snapshot) else state
+            }
             is MainServiceEvent.MeasureDelayResult -> {
                 if (!uiState.value.isRunning) return
                 _uiState.update { it.copy(isTesting = false, status = MainStatus.ConnectionTest(event.result)) }
@@ -963,6 +966,7 @@ class MainViewModel(
         _uiState.update { state ->
             state.copy(
                 isRunning = running,
+                traffic = if (running && state.isRunning) state.traffic else null,
                 isTesting = testRequests.isTesting,
                 status = if (!clearTestingText && state.isRunning == running) state.status
                 else if (running) MainStatus.Connected else MainStatus.Disconnected

@@ -8,20 +8,26 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
+import android.os.SystemClock
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.core.CoreServiceManager
+import com.v2ray.ang.dto.TrafficSnapshot
+import com.v2ray.ang.dto.trafficSnapshot
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.extension.delay
 import com.v2ray.ang.extension.toSpeedString
 import com.v2ray.ang.helper.NotificationHelper
+import com.v2ray.ang.helper.MessageHelper
 import com.v2ray.ang.ui.main.MainActivity
 import com.v2ray.ang.util.LogUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.min
@@ -35,8 +41,11 @@ object NotificationManager {
     private const val QUERY_INTERVAL_MS = 3000L
 
     private var lastQueryTime = 0L
+    private var sessionStartTime = 0L
+    private var traffic: TrafficSnapshot? = null
     private var mBuilder: NotificationCompat.Builder? = null
     private var speedNotificationJob: Job? = null
+    private val notificationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var mNotificationManager: NotificationManager? = null
 
     /**
@@ -44,12 +53,14 @@ object NotificationManager {
      * @param currentConfig The current profile configuration.
      */
     fun startSpeedNotification() {
-        if (MmkvManager.decodeSettingsBool(AppConfig.PREF_SPEED_ENABLED) != true) return
+        if (!MmkvManager.decodeSettingsBool(AppConfig.PREF_SPEED_ENABLED, true)) return
         if (speedNotificationJob != null || CoreServiceManager.isRunning() == false) return
+
+        if (sessionStartTime == 0L) sessionStartTime = SystemClock.elapsedRealtime()
 
         var lastZeroSpeed = false
 
-        speedNotificationJob = CoroutineScope(Dispatchers.IO).launch {
+        speedNotificationJob = notificationScope.launch {
             while (isActive) {
                 lastZeroSpeed = updateSpeedNotificationOnce(lastZeroSpeed)
                 delay(QUERY_INTERVAL_MS)
@@ -65,7 +76,7 @@ object NotificationManager {
         val service = getService() ?: return
 
         // Reset last query time to avoid querying stats too soon after showing the notification
-        lastQueryTime = System.currentTimeMillis()
+        lastQueryTime = SystemClock.elapsedRealtime()
 
         val flags = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
 
@@ -135,7 +146,10 @@ object NotificationManager {
 
         mBuilder = null
         speedNotificationJob?.cancel()
+        notificationScope.coroutineContext.cancelChildren()
         speedNotificationJob = null
+        sessionStartTime = 0L
+        traffic = null
         mNotificationManager = null
     }
 
@@ -228,7 +242,7 @@ object NotificationManager {
      * @return The current zero speed state.
      */
     private fun updateSpeedNotificationOnce(lastZeroSpeed: Boolean): Boolean {
-        val queryTime = System.currentTimeMillis()
+        val queryTime = SystemClock.elapsedRealtime()
         val sinceLastQueryIn = (queryTime - lastQueryTime)
 
         // If the query interval is too short, skip this round to avoid excessive CPU usage
@@ -265,6 +279,18 @@ object NotificationManager {
 
         val proxyTotal = proxyUplink + proxyDownlink
         val directTotal = directUplink + directDownlink
+        traffic = trafficSnapshot(
+            previous = traffic,
+            uploadedBytes = proxyUplink + directUplink,
+            downloadedBytes = proxyDownlink + directDownlink,
+            intervalMillis = sinceLastQueryIn,
+            measuredDurationMillis = queryTime - sessionStartTime,
+        )
+        traffic?.let { sample ->
+            getService()?.let { service ->
+                MessageHelper.sendMsg2UI(service, AppConfig.MSG_TRAFFIC_STATS, sample)
+            }
+        }
         val zeroSpeed = proxyTotal + directTotal == 0L
         if (!zeroSpeed || !lastZeroSpeed) {
             val text = StringBuilder()
