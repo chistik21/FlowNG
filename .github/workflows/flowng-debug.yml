@@ -1,0 +1,80 @@
+name: FlowNG debug APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - flowng/development
+
+permissions:
+  contents: read
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout pinned native sources and nested submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: V2rayNG/**/*.gradle.kts
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform and native toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager --install 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;30.0.16248370'
+          echo "NDK_HOME=$ANDROID_HOME/ndk/30.0.16248370" >> "$GITHUB_ENV"
+
+      - name: Build HEV JNI and root-mode binaries for all app ABIs
+        run: bash compile-hevtun.sh
+
+      - name: Stage HEV binaries
+        run: cp -r libs V2rayNG/app/
+
+      - name: Download Xray AAR matching the pinned submodule revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=$(git -C AndroidLibXrayLite rev-parse HEAD)
+          tag=$(git -C AndroidLibXrayLite describe --tags --exact-match)
+          echo "Pinned AndroidLibXrayLite revision: $revision ($tag)"
+          mkdir -p V2rayNG/app/libs
+          curl --fail --location --retry 3 \
+            "https://github.com/2dust/AndroidLibXrayLite/releases/download/$tag/libv2ray.aar" \
+            --output V2rayNG/app/libs/libv2ray.aar
+          test -s V2rayNG/app/libs/libv2ray.aar
+
+      - name: Assemble and test Play Store debug
+        working-directory: V2rayNG
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Upstream injects this same NDK revision in its release workflow.
+          sed -i '10i\    ndkVersion = "30.0.16248370"' app/build.gradle.kts
+          chmod +x gradlew
+          ./gradlew --stacktrace :app:testPlaystoreDebugUnitTest :app:assemblePlaystoreDebug
+
+      - name: Upload installable debug APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlowNG-debug-apks
+          path: V2rayNG/app/build/outputs/apk/playstore/debug/*.apk
+          if-no-files-found: error
+
+      - name: Explain build failure
+        if: failure()
+        run: |
+          echo 'Check the failing step above. Native inputs, Gradle stacktrace, and Android SDK versions are printed in this run.' >> "$GITHUB_STEP_SUMMARY"
